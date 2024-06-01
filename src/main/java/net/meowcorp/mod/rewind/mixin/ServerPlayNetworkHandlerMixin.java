@@ -24,26 +24,28 @@ public class ServerPlayNetworkHandlerMixin {
 	// log packets sent by the server
 	@Inject(method = "sendPacket(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/PacketCallbacks;)V", at = @At("HEAD"))
 	private void onSendPacket(Packet<?> packet, @Nullable PacketCallbacks callbacks, CallbackInfo ci) {
-		Class<?> packetClass = packet.getClass();
-		World world = player.getServerWorld();
+		// logging to db
+		Rewind.getPacketLogger().logPacket(packet);
 
-		Rewind.LOGGER.info("Sent packet: {}", packet.getClass().getName());
-
-		// get id field from packet if exists
-		try {
-			Field inField = packetClass.getDeclaredField("id");
-			inField.setAccessible(true);
-
-			int entityId = inField.getInt(packet);
-
-			Entity entity = world.getEntityById(entityId);
-			if (entity != null) Rewind.LOGGER.info("Entity name: {}", entity.getName().getString());
-		} catch (NoSuchFieldException ignored) {} catch (IllegalAccessException e) {
-			Rewind.LOGGER.error("Failed to access 'id' field on packet {}", packet.getClass().getSimpleName());
-		}
-
-
-		logFields(packet, packetClass);
+		// logging to console
+//		Class<?> packetClass = packet.getClass();
+//		World world = player.getServerWorld();
+//
+//		Rewind.LOGGER.info("Sent packet: {}", packet.getClass().getName());
+//
+//		// get id field from packet if exists
+//		try {
+//			Field inField = packetClass.getDeclaredField("id");
+//			inField.setAccessible(true);
+//
+//			int entityId = inField.getInt(packet);
+//
+//			Entity entity = world.getEntityById(entityId);
+//			if (entity != null) Rewind.LOGGER.info("Entity name: {}", entity.getName().getString());
+//		} catch (NoSuchFieldException ignored) {} catch (IllegalAccessException e) {
+//			Rewind.LOGGER.error("Failed to access 'id' field on packet {}", packet.getClass().getSimpleName());
+//		}
+//		logFields(packet, packetClass);
 	}
 
 	@Unique
