@@ -18,6 +18,8 @@ repositories {
 	// for more information about repositories.
 
 	mavenLocal()
+	maven { url 'https://maven.nucleoid.xyz' }
+	maven { url 'https://pkgs.dev.azure.com/djtheredstoner/DevAuth/_packaging/public/maven/v1' }
 }
 
 loom {
@@ -37,6 +39,9 @@ fabricApi {
 }
 
 dependencies {
+	// Kotlin
+	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1'
+
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
@@ -45,8 +50,7 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	// Ledger
-	modImplementation "com.github.quiltservertools:ledger:${project.ledger_version}"
+	modRuntimeOnly "me.djtheredstoner:DevAuth-fabric:${project.devauth_version}"
 }
 
 processResources {
