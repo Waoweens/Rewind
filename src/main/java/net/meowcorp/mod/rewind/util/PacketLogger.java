@@ -10,10 +10,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.*;
 
 public class PacketLogger {
 	private final BlockingQueue<Packet<?>> queue = new LinkedBlockingQueue<>();
@@ -54,6 +51,21 @@ public class PacketLogger {
 				}
 			}
 		});
+	}
+
+	public void shutdown() {
+		executor.shutdown();
+		try {
+			if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+				executor.shutdownNow();
+				if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+					Rewind.LOGGER.error("Executor did not terminate");
+				}
+			}
+		} catch (InterruptedException e) {
+			executor.shutdownNow();
+			Thread.currentThread().interrupt();
+		}
 	}
 
 	public byte[] serializePacket(Packet<?> packet) {

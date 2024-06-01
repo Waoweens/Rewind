@@ -2,8 +2,9 @@ package net.meowcorp.mod.rewind;
 
 import net.fabricmc.api.ModInitializer;
 
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.meowcorp.mod.rewind.command.CommandRegistry;
-import net.meowcorp.mod.rewind.util.DatabaseHelper;
+import net.meowcorp.mod.rewind.util.PacketLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,6 +16,8 @@ public class Rewind implements ModInitializer {
 	public static final String DATABASE_PATH = "jdbc:sqlite:rewind.db";
 	public static final String MOD_ID = "rewind";
 
+	private static PacketLogger packetLogger;
+
 	@Override
 	public void onInitialize() {
 		// This code runs as soon as Minecraft is in a mod-load-ready state.
@@ -23,7 +26,20 @@ public class Rewind implements ModInitializer {
 
 		LOGGER.info("Hello Fabric world!");
 
+		packetLogger = new PacketLogger();
+		LOGGER.info("Rewind packet logger initialized");
+
 		// Registry
 		CommandRegistry.register();
+
+		// events
+		ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+			packetLogger.shutdown();
+			LOGGER.info("Rewind packet logger shutdown");
+		});
+	}
+
+	public static PacketLogger getPacketLogger() {
+		return packetLogger;
 	}
 }
