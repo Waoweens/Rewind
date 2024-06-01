@@ -2,6 +2,7 @@ package net.meowcorp.mod.rewind;
 
 import net.fabricmc.api.ModInitializer;
 
+import net.meowcorp.mod.rewind.command.CommandRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,5 +19,8 @@ public class Rewind implements ModInitializer {
 		// Proceed with mild caution.
 
 		LOGGER.info("Hello Fabric world!");
+
+		// Registry
+		CommandRegistry.register();
 	}
 }
