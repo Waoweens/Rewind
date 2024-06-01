@@ -23,8 +23,6 @@ public class Rewind implements ModInitializer {
 
 		LOGGER.info("Hello Fabric world!");
 
-		DatabaseHelper.initializeDatabase();
-
 		// Registry
 		CommandRegistry.register();
 	}
