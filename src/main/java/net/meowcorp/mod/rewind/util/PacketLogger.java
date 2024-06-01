@@ -43,6 +43,19 @@ public class PacketLogger {
 		}
 	}
 
+	private void startWorker() {
+		executor.submit(() -> {
+			while (!Thread.currentThread().isInterrupted()) {
+				try {
+					Packet<?> packet = queue.take();
+					storePacket(packet);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+				}
+			}
+		});
+	}
+
 	public byte[] serializePacket(Packet<?> packet) {
 		PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
 		packet.write(buf);
@@ -67,4 +80,23 @@ public class PacketLogger {
 		}
 	}
 
+	public void logPacket(Packet<?> packet) {
+		if (!queue.offer(packet)) {
+			Rewind.LOGGER.error("Failed to enqueue packet");
+		}
+	}
+
+	private void storePacket(Packet<?> packet) {
+		String sql = "INSERT INTO packets (packetType, packetData) VALUES (?, ?)";
+
+		try (Connection conn = DriverManager.getConnection(Rewind.DATABASE_PATH);
+			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, packet.getClass().getName());
+			pstmt.setBytes(2, serializePacket(packet));
+			pstmt.executeUpdate();
+
+		} catch (SQLException e) {
+			Rewind.LOGGER.error("Failed to store packet: {}", e.getMessage());
+		}
+	}
 }
