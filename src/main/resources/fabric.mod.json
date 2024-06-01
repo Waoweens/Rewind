@@ -3,15 +3,16 @@
 	"id": "rewind",
 	"version": "${version}",
 	"name": "Rewind",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "rewind time, max caulfield style",
 	"authors": [
-		"Me!"
+		"Waoweens"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://redirect.meowcorp.net/rewind-mod",
+		"sources": "https://github.com/Waoweens/Rewind",
+		"issues": "https://github.com/Waoweens/Rewind/issues"
 	},
-	"license": "CC0-1.0",
+	"license": "LGPL-3.0-only",
 	"icon": "assets/rewind/icon.png",
 	"environment": "*",
 	"entrypoints": {
