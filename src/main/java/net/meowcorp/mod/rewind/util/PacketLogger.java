@@ -1,9 +1,14 @@
 package net.meowcorp.mod.rewind.util;
 
+import io.netty.buffer.Unpooled;
 import net.meowcorp.mod.rewind.Rewind;
+import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -37,4 +42,29 @@ public class PacketLogger {
 			Rewind.LOGGER.error("Failed to connect to database: {}", e.getMessage());
 		}
 	}
+
+	public byte[] serializePacket(Packet<?> packet) {
+		PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
+		packet.write(buf);
+
+		byte[] data = new byte[buf.readableBytes()];
+		buf.readBytes(data);
+		return data;
+	}
+
+	// FIXME: this is very fucking cursed and unsafe
+	public Packet<?> deserializePacket(String packetType, byte[] data) {
+		PacketByteBuf buf = new PacketByteBuf(Unpooled.wrappedBuffer(data));
+		try {
+			Class<?> packetClass = Class.forName(packetType);
+			Method readMethod = packetClass.getMethod("read", PacketByteBuf.class);
+			Packet<?> packet = (Packet<?>) packetClass.getDeclaredConstructor().newInstance();
+			readMethod.invoke(packet, buf);
+			return packet;
+		} catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
+				 IllegalAccessException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 }
