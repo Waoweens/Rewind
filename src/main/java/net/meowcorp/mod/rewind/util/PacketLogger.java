@@ -18,6 +18,7 @@ public class PacketLogger {
 
 	public PacketLogger() {
 		initializeDatabase();
+		startWorker();
 	}
 
 	private void initializeDatabase() {
@@ -56,9 +57,10 @@ public class PacketLogger {
 	public void shutdown() {
 		executor.shutdown();
 		try {
-			if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+			// TODO: don't use a fixed timeout
+			if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
 				executor.shutdownNow();
-				if (!executor.awaitTermination(60, TimeUnit.SECONDS)) {
+				if (!executor.awaitTermination(2, TimeUnit.SECONDS)) {
 					Rewind.LOGGER.error("Executor did not terminate");
 				}
 			}
