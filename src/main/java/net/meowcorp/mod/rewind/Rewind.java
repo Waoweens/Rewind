@@ -4,7 +4,8 @@ import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.meowcorp.mod.rewind.command.CommandRegistry;
-import net.meowcorp.mod.rewind.util.PacketLogger;
+import net.meowcorp.mod.rewind.packet.PacketSerializer;
+import net.meowcorp.mod.rewind.packet.PacketDatabase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,9 @@ public class Rewind implements ModInitializer {
 	public static final String DATABASE_PATH = "jdbc:sqlite:rewind.db";
 	public static final String MOD_ID = "rewind";
 
-	private static PacketLogger packetLogger;
+	private static PacketDatabase packetLogger;
+
+	public static PacketSerializer SERIALIZER = new PacketSerializer();
 
 	@Override
 	public void onInitialize() {
@@ -26,7 +29,7 @@ public class Rewind implements ModInitializer {
 
 		LOGGER.info("Hello Fabric world!");
 
-		packetLogger = new PacketLogger();
+		packetLogger = new PacketDatabase();
 		LOGGER.info("Rewind packet logger initialized");
 
 		// Registry
@@ -39,7 +42,7 @@ public class Rewind implements ModInitializer {
 		});
 	}
 
-	public static PacketLogger getPacketLogger() {
+	public static PacketDatabase getPacketLogger() {
 		return packetLogger;
 	}
 }

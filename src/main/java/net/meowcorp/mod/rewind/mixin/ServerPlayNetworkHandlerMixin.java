@@ -1,6 +1,7 @@
 package net.meowcorp.mod.rewind.mixin;
 
 import net.meowcorp.mod.rewind.Rewind;
+import net.meowcorp.mod.rewind.packet.PacketSerializer;
 import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;
@@ -24,8 +25,10 @@ public class ServerPlayNetworkHandlerMixin {
 	// log packets sent by the server
 	@Inject(method = "sendPacket(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/PacketCallbacks;)V", at = @At("HEAD"))
 	private void onSendPacket(Packet<?> packet, @Nullable PacketCallbacks callbacks, CallbackInfo ci) {
+		Rewind.SERIALIZER.serialize(packet);
+
 		// logging to db
-		Rewind.getPacketLogger().logPacket(packet);
+//		Rewind.getPacketLogger().logPacket(packet);
 
 		// logging to console
 //		Class<?> packetClass = packet.getClass();
