@@ -2,6 +2,7 @@ package net.meowcorp.mod.rewind.packet;
 
 import com.google.gson.JsonObject;
 import net.meowcorp.mod.rewind.Rewind;
+import net.meowcorp.mod.rewind.util.IPacketStrategy;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
 
@@ -9,42 +10,33 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PacketSerializer {
-	private final Map<Class<? extends Packet<?>>, PacketStrategy> serializers = new HashMap<>();
+	private final Map<String, IPacketStrategy<? extends Packet<?>>> serializers = new HashMap<>();
 
 	public PacketSerializer() {
-		serializers.put(EntityS2CPacket.MoveRelative.class, new PacketStrategy.EMoveRelative());
-		serializers.put(EntityS2CPacket.Rotate.class, new PacketStrategy.ERotate());
-		serializers.put(EntityS2CPacket.RotateAndMoveRelative.class, new PacketStrategy.ERotateAndMoveRelative());
+		registerStrategy(EntityS2CPacket.MoveRelative.class);
+		registerStrategy(EntityS2CPacket.Rotate.class);
+		registerStrategy(EntityS2CPacket.RotateAndMoveRelative.class);
 	}
 
-	public JsonObject serialize(Packet<?> packet) {
-		PacketStrategy strategy = serializers.get(packet.getClass());
+	private <T extends Packet<?>> void registerStrategy(Class<T> packetClass) {
+		serializers.put(packetClass.getName(), new PacketStrategy<>(packetClass));
+	}
+
+	public <T extends Packet<?>> JsonObject serialize(T packet) {
+		@SuppressWarnings("unchecked")
+		IPacketStrategy<T> strategy = (IPacketStrategy<T>) serializers.get(packet.getClass().getName());
 		if (strategy != null) return strategy.serialize(packet);
 
-		Rewind.LOGGER.warn("No serializer found for packet: {}", packet.getClass().getSimpleName());
+		Rewind.LOGGER.error("No serializer found for packet type: {}", packet.getClass().getName());
 		return null;
 	}
 
-	public Packet<?> deserialize(String packetType, JsonObject json) {
-		try {
-			Class<?> clazz = Class.forName(packetType);
-			if (Packet.class.isAssignableFrom(clazz)) {
-				@SuppressWarnings("unchecked")
-				Class<? extends Packet<?>> packetClass = (Class<? extends Packet<?>>) clazz;
+	public <T extends Packet<?>> T deserialize(String packetType, JsonObject json) {
+		@SuppressWarnings("unchecked")
+		IPacketStrategy<T> strategy = (IPacketStrategy<T>) serializers.get(packetType);
+		if (strategy != null) return strategy.deserialize(json);
 
-				PacketStrategy strategy = serializers.get(packetClass);
-				if (strategy != null) return strategy.deserialize(json);
-
-				Rewind.LOGGER.warn("No deserializer found for packet type: {}", packetType);
-				return null;
-			} else {
-				Rewind.LOGGER.error("Class is not a packet: {}", packetType);
-				return null;
-			}
-
-		} catch (ClassNotFoundException e) {
-			Rewind.LOGGER.error("Failed to find packet class: {}", packetType);
-			return null;
-		}
+		Rewind.LOGGER.error("No deserializer found for packet type: {}", packetType);
+		return null;
 	}
 }
