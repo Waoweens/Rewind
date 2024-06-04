@@ -2,13 +2,10 @@ package net.meowcorp.mod.rewind.mixin;
 
 import com.google.gson.JsonObject;
 import net.meowcorp.mod.rewind.Rewind;
-import net.meowcorp.mod.rewind.packet.PacketSerializer;
-import net.minecraft.entity.Entity;
 import net.minecraft.network.PacketCallbacks;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

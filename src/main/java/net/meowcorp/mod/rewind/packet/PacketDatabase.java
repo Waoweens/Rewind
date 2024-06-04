@@ -1,14 +1,10 @@
 package net.meowcorp.mod.rewind.packet;
 
 import com.google.gson.JsonObject;
-import io.netty.buffer.Unpooled;
 import net.meowcorp.mod.rewind.Rewind;
-import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.concurrent.*;
 

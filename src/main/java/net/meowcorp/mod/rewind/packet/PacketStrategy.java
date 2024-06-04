@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.meowcorp.mod.rewind.util.IPacketStrategy;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.EntityS2CPacket;
 
 public class PacketStrategy<T extends Packet<?>> implements IPacketStrategy<T> {
 	private final Class<T> packetClass;
