@@ -69,30 +69,6 @@ public class PacketDatabase {
 		}
 	}
 
-	public byte[] serializePacket(Packet<?> packet) {
-		PacketByteBuf buf = new PacketByteBuf(Unpooled.buffer());
-		packet.write(buf);
-
-		byte[] data = new byte[buf.readableBytes()];
-		buf.readBytes(data);
-		return data;
-	}
-
-	// FIXME: this is very fucking cursed and unsafe
-	public Packet<?> deserializePacket(String packetType, byte[] data) {
-		PacketByteBuf buf = new PacketByteBuf(Unpooled.wrappedBuffer(data));
-		try {
-			Class<?> packetClass = Class.forName(packetType);
-			Method readMethod = packetClass.getMethod("read", PacketByteBuf.class);
-			Packet<?> packet = (Packet<?>) packetClass.getDeclaredConstructor().newInstance();
-			readMethod.invoke(packet, buf);
-			return packet;
-		} catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
-				 IllegalAccessException e) {
-			throw new RuntimeException(e);
-		}
-	}
-
 	public void logPacket(Packet<?> packet) {
 		if (!queue.offer(packet)) {
 			Rewind.LOGGER.error("Failed to enqueue packet");
