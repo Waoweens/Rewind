@@ -1,5 +1,6 @@
 package net.meowcorp.mod.rewind.packet;
 
+import com.google.gson.JsonObject;
 import io.netty.buffer.Unpooled;
 import net.meowcorp.mod.rewind.Rewind;
 import net.minecraft.network.PacketByteBuf;
@@ -12,12 +13,22 @@ import java.sql.*;
 import java.util.concurrent.*;
 
 public class PacketDatabase {
-	private final BlockingQueue<Packet<?>> queue = new LinkedBlockingQueue<>();
+	private final BlockingQueue<PacketData> queue = new LinkedBlockingQueue<>();
 	private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
 	public PacketDatabase() {
 		initializeDatabase();
 		startWorker();
+	}
+
+	private static class PacketData {
+		Packet<?> packet;
+		JsonObject json;
+
+		PacketData(Packet<?> packet, JsonObject json) {
+			this.packet = packet;
+			this.json = json;
+		}
 	}
 
 	private void initializeDatabase() {
@@ -30,7 +41,7 @@ public class PacketDatabase {
 									"id INTEGER PRIMARY KEY AUTOINCREMENT, " +
 									"timestamp DATETIME DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'NOW')), " +
 									"packetType TEXT NOT NULL, " +
-									"packetData BLOB)";
+									"packetData TEXT NOT NULL)";
 					statement.execute(sql);
 					Rewind.LOGGER.info("Database initialized successfully: {}", new File(Rewind.DATABASE_PATH).getAbsolutePath());
 				}
@@ -44,8 +55,8 @@ public class PacketDatabase {
 		executor.submit(() -> {
 			while (!Thread.currentThread().isInterrupted()) {
 				try {
-					Packet<?> packet = queue.take();
-					storePacket(packet);
+					PacketData packetData = queue.take();
+					storePacket(packetData.packet, packetData.json);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
@@ -69,19 +80,20 @@ public class PacketDatabase {
 		}
 	}
 
-	public void logPacket(Packet<?> packet) {
-		if (!queue.offer(packet)) {
+	public void logPacket(Packet<?> packet, JsonObject json) {
+		if (!queue.offer(new PacketData(packet, json))) {
 			Rewind.LOGGER.error("Failed to enqueue packet");
 		}
 	}
 
-	private void storePacket(Packet<?> packet) {
-		String sql = "INSERT INTO packets (packetType, packetData) VALUES (?, ?)";
+	private void storePacket(Packet<?> packet, JsonObject json) {
+		String packetData = json.toString();
 
+		String sql = "INSERT INTO packets (packetType, packetData) VALUES (?, ?)";
 		try (Connection conn = DriverManager.getConnection(Rewind.DATABASE_PATH);
 			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
 			pstmt.setString(1, packet.getClass().getName());
-			pstmt.setBytes(2, serializePacket(packet));
+			pstmt.setString(2, packetData);
 			pstmt.executeUpdate();
 
 		} catch (SQLException e) {
