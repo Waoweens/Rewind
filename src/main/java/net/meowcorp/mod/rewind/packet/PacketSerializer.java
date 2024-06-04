@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PacketSerializer {
-	private Map<Class<? extends Packet<?>>, PacketStrategy> serializers = new HashMap<>();
+	private final Map<Class<? extends Packet<?>>, PacketStrategy> serializers = new HashMap<>();
 
 	public PacketSerializer() {
 		serializers.put(EntityS2CPacket.MoveRelative.class, new PacketStrategy.EMoveRelative());
