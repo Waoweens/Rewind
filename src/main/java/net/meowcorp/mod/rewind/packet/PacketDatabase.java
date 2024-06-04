@@ -1,4 +1,4 @@
-package net.meowcorp.mod.rewind.util;
+package net.meowcorp.mod.rewind.packet;
 
 import io.netty.buffer.Unpooled;
 import net.meowcorp.mod.rewind.Rewind;
@@ -6,17 +6,16 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.Packet;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.concurrent.*;
 
-public class PacketLogger {
+public class PacketDatabase {
 	private final BlockingQueue<Packet<?>> queue = new LinkedBlockingQueue<>();
 	private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-	public PacketLogger() {
+	public PacketDatabase() {
 		initializeDatabase();
 		startWorker();
 	}
