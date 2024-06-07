@@ -27,7 +27,7 @@ public class ServerPlayNetworkHandlerMixin {
 
 		if (packetData != null) {
 			Rewind.LOGGER.info("Serialized {}: {}", packet.getClass().getSimpleName(), packetData);
-			Rewind.getPacketLogger().logPacket(packet, packetData);
+			Rewind.getPacketLogger().logPacket(packet.getClass().getName(), packetData);
 		}
 
 		// logging to db

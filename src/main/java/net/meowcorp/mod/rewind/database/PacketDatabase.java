@@ -1,28 +1,31 @@
 package net.meowcorp.mod.rewind.database;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.meowcorp.mod.rewind.Rewind;
-import net.minecraft.network.packet.Packet;
 
 import java.io.File;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.*;
 
 public class PacketDatabase {
 	private final BlockingQueue<PacketData> queue = new LinkedBlockingQueue<>();
 	private final ExecutorService executor = Executors.newSingleThreadExecutor();
+	private final Gson gson = new Gson();
 
 	public PacketDatabase() {
 		initializeDatabase();
 		startWorker();
 	}
 
-	private static class PacketData {
-		Packet<?> packet;
+	public static class PacketData {
+		String packetType;
 		JsonObject json;
 
-		PacketData(Packet<?> packet, JsonObject json) {
-			this.packet = packet;
+		PacketData(String packetType, JsonObject json) {
+			this.packetType = packetType;
 			this.json = json;
 		}
 	}
@@ -30,7 +33,6 @@ public class PacketDatabase {
 	private void initializeDatabase() {
 		try (Connection conn = DriverManager.getConnection(Rewind.DATABASE_PATH)) {
 			if (conn != null) {
-				DatabaseMetaData meta = conn.getMetaData();
 				try (Statement statement = conn.createStatement()) {
 					String sql =
 							"CREATE TABLE IF NOT EXISTS packets (" +
@@ -52,7 +54,7 @@ public class PacketDatabase {
 			while (!Thread.currentThread().isInterrupted()) {
 				try {
 					PacketData packetData = queue.take();
-					storePacket(packetData.packet, packetData.json);
+					storePacket(packetData.packetType, packetData.json);
 				} catch (InterruptedException e) {
 					Thread.currentThread().interrupt();
 				}
@@ -76,24 +78,47 @@ public class PacketDatabase {
 		}
 	}
 
-	public void logPacket(Packet<?> packet, JsonObject json) {
-		if (!queue.offer(new PacketData(packet, json))) {
+	public void logPacket(String packetType, JsonObject json) {
+		if (!queue.offer(new PacketData(packetType, json))) {
 			Rewind.LOGGER.error("Failed to enqueue packet");
 		}
 	}
 
-	private void storePacket(Packet<?> packet, JsonObject json) {
+	private void storePacket(String packetType, JsonObject json) {
 		String packetData = json.toString();
 
 		String sql = "INSERT INTO packets (packetType, packetData) VALUES (?, ?)";
 		try (Connection conn = DriverManager.getConnection(Rewind.DATABASE_PATH);
 			 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-			pstmt.setString(1, packet.getClass().getName());
+			pstmt.setString(1, packetType);
 			pstmt.setString(2, packetData);
 			pstmt.executeUpdate();
 
 		} catch (SQLException e) {
 			Rewind.LOGGER.error("Failed to store packet: {}", e.getMessage());
 		}
+	}
+
+	public List<PacketData> getPacketsSec(int seconds) {
+		List<PacketData> packets = new ArrayList<>();
+		String sql = "SELECT * FROM packets  WHERE timestamp >= datetime('now', ?)";
+
+		try(Connection conn = DriverManager.getConnection(Rewind.DATABASE_PATH);
+			PreparedStatement pstmt = conn.prepareStatement(sql)) {
+			pstmt.setString(1, "-" + seconds + " seconds");
+			ResultSet rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				String packetData = rs.getString("packetData");
+				String packetType = rs.getString("packetType");
+				JsonObject json = gson.fromJson(packetData, JsonObject.class);
+				packets.add(new PacketData(packetType, json));
+			}
+
+		} catch (SQLException e) {
+			Rewind.LOGGER.error("Failed to get packets: {}", e.getMessage());
+		}
+
+		return packets;
 	}
 }
