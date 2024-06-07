@@ -1,4 +1,4 @@
-package net.meowcorp.mod.rewind.packet;
+package net.meowcorp.mod.rewind.database;
 
 import com.google.gson.JsonObject;
 import net.meowcorp.mod.rewind.Rewind;

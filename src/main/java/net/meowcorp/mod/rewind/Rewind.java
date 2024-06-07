@@ -4,8 +4,8 @@ import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.meowcorp.mod.rewind.command.CommandRegistry;
-import net.meowcorp.mod.rewind.packet.PacketSerializer;
-import net.meowcorp.mod.rewind.packet.PacketDatabase;
+import net.meowcorp.mod.rewind.database.PacketSerializer;
+import net.meowcorp.mod.rewind.database.PacketDatabase;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.WorldSavePath;
 import org.slf4j.Logger;
