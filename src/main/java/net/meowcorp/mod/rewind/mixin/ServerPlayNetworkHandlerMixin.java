@@ -23,12 +23,14 @@ public class ServerPlayNetworkHandlerMixin {
 	// log packets sent by the server
 	@Inject(method = "sendPacket(Lnet/minecraft/network/packet/Packet;Lnet/minecraft/network/PacketCallbacks;)V", at = @At("HEAD"))
 	private void onSendPacket(Packet<?> packet, @Nullable PacketCallbacks callbacks, CallbackInfo ci) {
-		JsonObject packetData = Rewind.SERIALIZER.serialize(packet);
+//		JsonObject packetData = Rewind.SERIALIZER.serialize(packet);
 
-		if (packetData != null) {
-			Rewind.LOGGER.info("Serialized {}: {}", packet.getClass().getSimpleName(), packetData);
-			Rewind.getPacketLogger().logPacket(packet.getClass().getName(), packetData);
-		}
+//		if (packetData != null) {
+//			Rewind.LOGGER.info("Serialized {}: {}", packet.getClass().getSimpleName(), packetData);
+//			Rewind.getPacketLogger().logPacket(packet.getClass().getName(), packetData);
+//		}
+
+		Rewind.getPacketLogger().logPacket(packet);
 
 		// logging to db
 //		Rewind.getPacketLogger().logPacket(packet);
