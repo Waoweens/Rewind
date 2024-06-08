@@ -1,15 +1,16 @@
 package net.meowcorp.mod.rewind.database;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import net.meowcorp.mod.rewind.Rewind;
 import net.meowcorp.mod.rewind.record.PacketRecorderFactory;
+import net.meowcorp.mod.rewind.record.SQLQueries;
 import net.meowcorp.mod.rewind.util.IStorageStrategy;
+import net.meowcorp.mod.rewind.util.PacketData;
 import net.minecraft.network.packet.Packet;
 
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.*;
 
@@ -17,47 +18,19 @@ public class PacketDatabase {
 	private final BlockingQueue<Packet<?>> queue = new LinkedBlockingQueue<>();
 	private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
-	private PacketRecorderFactory recorderFactory = new PacketRecorderFactory();
+	private final PacketRecorderFactory recorderFactory = new PacketRecorderFactory();
 
 	public PacketDatabase() {
 		initializeDatabase();
 		startWorker();
 	}
 
-//	public static class PacketData {
-//		public String packetType;
-//		public JsonObject json;
-//
-//		PacketData(String packetType, JsonObject json) {
-//			this.packetType = packetType;
-//			this.json = json;
-//		}
-//	}
-
 	private void initializeDatabase() {
 		try (Connection conn = DriverManager.getConnection(Rewind.DATABASE_PATH)) {
 			if (conn != null) {
 				try (Statement statement = conn.createStatement()) {
-					String sql =
-"""
-CREATE TABLE IF NOT EXISTS BasePackets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    timestamp DATETIME DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'NOW'))
-);
-
-CREATE TABLE IF NOT EXISTS EntityS2CPacket (
-    id INTEGER PRIMARY KEY,
-    entityId INTEGER NOT NULL, -- int
-    dX INTEGER, -- short
-    dY INTEGER, -- short
-    dZ INTEGER, -- short
-    yaw INTEGER, -- byte
-    pitch INTEGER, -- byte
-    onGround INTEGER, -- boolean
-    FOREIGN KEY (id) REFERENCES BasePackets(id)
-);
-""";
-					statement.execute(sql);
+					statement.execute(SQLQueries.CREATE_BASE_PACKETS);
+					statement.execute(SQLQueries.CREATE_ENTITY_S2C_PACKET);
 					Rewind.LOGGER.info("Database initialized successfully: {}", new File(Rewind.DATABASE_PATH).getAbsolutePath());
 				}
 			}
@@ -134,28 +107,24 @@ CREATE TABLE IF NOT EXISTS EntityS2CPacket (
 		}
 	}
 
-//	public List<PacketData> getPacketsSec(int seconds) {
-//		List<PacketData> packets = new ArrayList<>();
-//		String sql = "SELECT * FROM packets  WHERE timestamp >= datetime('now', ?)";
-//
-//		try(Connection conn = DriverManager.getConnection(Rewind.DATABASE_PATH);
-//			PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//			pstmt.setString(1, "-" + seconds + " seconds");
-//			ResultSet rs = pstmt.executeQuery();
-//
-//			while (rs.next()) {
-//				String packetData = rs.getString("packetData");
-//				String packetType = rs.getString("packetType");
-//				JsonObject json = gson.fromJson(packetData, JsonObject.class);
-//				packets.add(new PacketData(packetType, json));
-//
-//				Rewind.LOGGER.info("Packet: [{}] {} {}", rs.getDate("timestamp"), packetType, packetData);
-//			}
-//
-//		} catch (SQLException e) {
-//			Rewind.LOGGER.error("Failed to get packets: {}", e.getMessage());
-//		}
-//
-//		return packets;
-//	}
+	public List<PacketData<?>> getPacketsSec(int seconds) {
+		List<PacketData<?>> packets = new ArrayList<>();
+		// get all packets from BasePacket from the last x seconds
+
+		// TODO: build a dynamic query system later
+		try (Connection conn = DriverManager.getConnection(Rewind.DATABASE_PATH);
+			 PreparedStatement statement = conn.prepareStatement(SQLQueries.QUERY_PACKETS_BY_TIME)) {
+
+			statement.setString(1, String.format("-%d seconds", seconds));
+			ResultSet rs = statement.executeQuery();
+			while (rs.next()) {
+				Timestamp timestamp = rs.getTimestamp("timestamp");
+//				Packet<?> packet = deserializePacket(rs);
+//				packets.add(new PacketData<>(timestamp, packet));
+			}
+
+		} catch (SQLException e) {
+			Rewind.LOGGER.error("Failed to get packets: {}", e.getMessage());
+		} return null;
+	}
 }

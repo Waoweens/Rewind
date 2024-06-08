@@ -92,7 +92,7 @@ public class EntityS2CPacketStrategy extends AbstractPacketRecorder<EntityS2CPac
 			while (rs.next()) {
 				Timestamp timestamp = rs.getTimestamp("timestamp");
 				Packet<?> packet = deserializePacket(rs);
-				packets.add(new PacketData(timestamp, packet));
+				packets.add(new PacketData<>(timestamp, packet));
 			}
 		}
 

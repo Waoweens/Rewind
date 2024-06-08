@@ -27,7 +27,7 @@ public class PacketSerializer {
 		IPacketStrategy<T> strategy = (IPacketStrategy<T>) serializers.get(packet.getClass().getName());
 		if (strategy != null) return strategy.serialize(packet);
 
-		Rewind.LOGGER.error("No serializer found for packet type: {}", packet.getClass().getName());
+//		Rewind.LOGGER.error("No serializer found for packet type: {}", packet.getClass().getName());
 		return null;
 	}
 
