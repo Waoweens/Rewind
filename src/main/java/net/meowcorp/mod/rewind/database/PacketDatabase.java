@@ -21,8 +21,8 @@ public class PacketDatabase {
 	}
 
 	public static class PacketData {
-		String packetType;
-		JsonObject json;
+		public String packetType;
+		public JsonObject json;
 
 		PacketData(String packetType, JsonObject json) {
 			this.packetType = packetType;
@@ -113,6 +113,8 @@ public class PacketDatabase {
 				String packetType = rs.getString("packetType");
 				JsonObject json = gson.fromJson(packetData, JsonObject.class);
 				packets.add(new PacketData(packetType, json));
+
+				Rewind.LOGGER.info("Packet: [{}] {} {}", rs.getDate("timestamp"), packetType, packetData);
 			}
 
 		} catch (SQLException e) {
