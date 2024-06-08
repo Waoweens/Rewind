@@ -1,15 +1,18 @@
 package net.meowcorp.mod.rewind.record;
 
 import net.meowcorp.mod.rewind.util.IStorageStrategy;
+import net.meowcorp.mod.rewind.util.PacketData;
 import net.minecraft.network.packet.Packet;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public abstract class AbstractPacketRecorder<T extends Packet<?>> implements IStorageStrategy<T> {
 	public abstract void store(Connection connection, T packet) throws SQLException;
+	public abstract List<PacketData> retrieve(Connection connection, int seconds) throws SQLException;
 
 	/**
 	 * Insert a base packet into the database
