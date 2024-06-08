@@ -3,7 +3,8 @@
 	"package": "net.meowcorp.mod.rewind.mixin",
 	"compatibilityLevel": "JAVA_17",
 	"mixins": [
-		"ServerPlayNetworkHandlerMixin"
+		"ServerPlayNetworkHandlerMixin",
+		"EntityS2CPacketAccessor"
 	],
 	"injectors": {
 		"defaultRequire": 1
